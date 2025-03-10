@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+import logging
 from flask import Flask, request, render_template, session, redirect, url_for, Response, flash
 import csv
 from io import StringIO
@@ -17,6 +18,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -107,6 +111,7 @@ def predict():
             "Prediction": result
         })
         session["history"] = history
+        app.logger.debug(f"Updated history session data: {session['history']}")
 
         return render_template("index.html", prediction_text=f"Prediction: {result}")
 
@@ -168,13 +173,29 @@ def upload():
 @app.route('/visualize')
 @login_required
 def visualize():
-    history = session.get('history', [])
-    df = pd.DataFrame(history)
-    fig = px.bar(df, x='Product Price', y='Order Quantity', color='Prediction', title='Prediction History')
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('visualize.html', graphJSON=graphJSON)
+    try:
+        history = session.get('history', [])
+        app.logger.debug(f"History session data: {history}")
+        if not history:
+            return render_template('visualize.html', graphJSON=None, message="No data available for visualization.")
+        
+        df = pd.DataFrame(history)
+        app.logger.debug(f"DataFrame columns: {df.columns}")
+        app.logger.debug(f"DataFrame head: {df.head()}")
+        if df.empty or 'Product Price' not in df.columns or 'Order Quantity' not in df.columns or 'Prediction' not in df.columns:
+            return render_template('visualize.html', graphJSON=None, message="Insufficient data for visualization.")
+        
+        fig = px.bar(df, x='Product Price', y='Order Quantity', color='Prediction', title='Prediction History')
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        app.logger.debug(f"Generated graph JSON: {graphJSON}")
+        return render_template('visualize.html', graphJSON=graphJSON)
+    except Exception as e:
+        app.logger.error(f"Error in visualize route: {e}")
+        return "An error occurred", 500
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)
