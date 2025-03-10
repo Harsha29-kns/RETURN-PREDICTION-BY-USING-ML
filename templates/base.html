@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Visualization</title>
+    <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <nav>
@@ -13,20 +12,21 @@
             <li><a href="{{ url_for('history') }}">History</a></li>
             <li><a href="{{ url_for('upload') }}">Upload</a></li>
             <li><a href="{{ url_for('visualize') }}">Visualize</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a></li>
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
     </nav>
     <div class="container">
-        <h1>Visualization</h1>
-        {% if message %}
-            <p>{{ message }}</p>
-        {% else %}
-            <div id="graph"></div>
-            <script>
-                var graphJSON = {{ graphJSON | safe }};
-                Plotly.newPlot('graph', graphJSON.data, graphJSON.layout);
-            </script>
-        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
     </div>
 </body>
 </html>

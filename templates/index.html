@@ -24,6 +24,7 @@
             <li><a href="{{ url_for('history') }}">History</a></li>
             <li><a href="{{ url_for('upload') }}">Upload</a></li>
             <li><a href="{{ url_for('visualize') }}">Visualize</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a></li>
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
     </nav>
@@ -67,8 +68,6 @@
                 <h3>{{ prediction_text }}</h3>
             </div>
         {% endif %}
-
-        
     </div>
 </body>
 </html>

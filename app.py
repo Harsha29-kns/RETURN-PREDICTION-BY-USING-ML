@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 import logging
-from flask import Flask, request, render_template, session, redirect, url_for, Response, flash
+from flask import Flask, request, render_template, session, redirect, url_for, Response, flash, send_file, jsonify
 import csv
 from io import StringIO
 import pandas as pd
@@ -66,6 +66,17 @@ def logout():
 @login_required
 def home():
     return render_template('index.html')
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        current_user.username = request.form['username']
+        current_user.password = request.form['password']
+        db.session.commit()
+        flash('Profile updated successfully', 'success')
+        return redirect(url_for('profile'))
+    return render_template('profile.html')
 
 # Load trained model, scaler, and feature list
 model = pickle.load(open("return_prediction_model.pkl", "rb"))
@@ -141,6 +152,18 @@ def download_history():
     output = si.getvalue()
     return Response(output, mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=history.csv"})
 
+@app.route("/download_history_excel")
+@login_required
+def download_history_excel():
+    history = session.get("history", [])
+    df = pd.DataFrame(history)
+    output = StringIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='History')
+    writer.save()
+    output.seek(0)
+    return send_file(output, attachment_filename="history.xlsx", as_attachment=True)
+
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload():
@@ -192,6 +215,39 @@ def visualize():
     except Exception as e:
         app.logger.error(f"Error in visualize route: {e}")
         return "An error occurred", 500
+
+@app.route("/api/predict", methods=["POST"])
+def api_predict():
+    try:
+        data = request.get_json()
+        input_data = {
+            "product_price": float(data["product_price"]),
+            "discount_applied": float(data["discount_applied"]),
+            "shipping_time": int(data["shipping_time"]),
+            "order_quantity": int(data["order_quantity"])
+        }
+
+        # Compute new features
+        input_data["total_order_value"] = input_data["product_price"] * input_data["order_quantity"]
+        input_data["discount_percentage"] = (input_data["discount_applied"] / input_data["product_price"]) * 100
+        input_data["high_discount"] = 1 if input_data["discount_percentage"] > 30 else 0
+        input_data["fast_shipping"] = 1 if input_data["shipping_time"] <= 3 else 0
+
+        # Ensure correct feature order
+        features = np.array([[input_data[feature] for feature in feature_columns]])
+        features_scaled = scaler.transform(features)
+
+        # Get prediction and probability
+        prediction = model.predict(features_scaled)[0]
+        probability = model.predict_proba(features_scaled)[0][1] * 100  # Probability of return
+
+        # Format the result
+        result = "Returned" if prediction == 1 else f"Not Returned ({100 - probability:.2f}% probability)"
+
+        return jsonify({"prediction": result, "probability": probability})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     import os
