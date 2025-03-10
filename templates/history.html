@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('history') }}">History</a></li>
+            <li><a href="{{ url_for('upload') }}">Upload</a></li>
+            <li><a href="{{ url_for('visualize') }}">Visualize</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h1>Prediction History</h1>
+        <div class="history-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Price</th>
+                        <th>Discount Applied</th>
+                        <th>Shipping Time</th>
+                        <th>Order Quantity</th>
+                        <th>Prediction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td>{{ item["Product Price"] }}</td>
+                        <td>{{ item["Discount Applied"] }}</td>
+                        <td>{{ item["Shipping Time"] }}</td>
+                        <td>{{ item["Order Quantity"] }}</td>
+                        <td>{{ item["Prediction"] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
