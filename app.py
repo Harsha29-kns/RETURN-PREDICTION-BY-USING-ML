@@ -1,5 +1,5 @@
 import pickle
-import numpy as np
+import numpy as  np
 import logging
 from flask import Flask, request, render_template, session, redirect, url_for, Response, flash, send_file, jsonify
 import csv
@@ -10,14 +10,23 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import plotly.express as px
 import plotly
 import json
+from werkzeug.utils import secure_filename
+import os
+from flask_migrate import Migrate
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Required for session handling
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)  # Add this line
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Ensure the profile_pictures directory exists
+os.makedirs(os.path.join(app.static_folder, 'profile_pictures'), exist_ok=True)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,6 +35,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    profile_picture = db.Column(db.String(150), nullable=True)  # Add this line
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -73,6 +83,15 @@ def profile():
     if request.method == 'POST':
         current_user.username = request.form['username']
         current_user.password = request.form['password']
+        
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.static_folder, 'profile_pictures', filename))
+                current_user.profile_picture = filename
+        
         db.session.commit()
         flash('Profile updated successfully', 'success')
         return redirect(url_for('profile'))
@@ -152,17 +171,43 @@ def download_history():
     output = si.getvalue()
     return Response(output, mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=history.csv"})
 
+from io import BytesIO
+
 @app.route("/download_history_excel")
 @login_required
 def download_history_excel():
     history = session.get("history", [])
     df = pd.DataFrame(history)
-    output = StringIO()
+    output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     df.to_excel(writer, index=False, sheet_name='History')
-    writer.save()
+    writer.close()  # Correct method to save the Excel file
     output.seek(0)
-    return send_file(output, attachment_filename="history.xlsx", as_attachment=True)
+    return send_file(output, download_name="history.xlsx", as_attachment=True)
+
+@app.route('/download_history_pdf')
+@login_required
+def download_history_pdf():
+    history = session.get("history", [])
+    if not history:
+        flash("No history available to download.", "warning")
+        return redirect(url_for("history"))
+
+    pdf_path = os.path.join(app.static_folder, 'history.pdf')
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    width, height = letter
+
+    c.drawString(100, height - 100, "Prediction History")
+    c.drawString(100, height - 120, "Product Price, Discount Applied, Shipping Time, Order Quantity, Prediction")
+
+    y = height - 140
+    for entry in history:
+        line = f"{entry['Product Price']}, {entry['Discount Applied']}, {entry['Shipping Time']}, {entry['Order Quantity']}, {entry['Prediction']}"
+        c.drawString(100, y, line)
+        y -= 20
+
+    c.save()
+    return send_file(pdf_path, as_attachment=True)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required

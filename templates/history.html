@@ -2,8 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>History</title>
+    <title>Prediction History</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .table-container {
+            margin-bottom: 20px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .buttons a {
+            margin-left: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            border-radius: 5px;
+        }
+        .buttons a.btn-secondary {
+            background-color: #6c757d;
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -16,9 +80,9 @@
         </ul>
     </nav>
     <div class="container">
-        <h1>Prediction History</h1>
-        <div class="history-table-container">
-            <table>
+        <div class="table-container">
+            <h1>Prediction History</h1>
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Product Price</th>
@@ -29,13 +93,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in history %}
+                    {% for entry in history %}
                     <tr>
-                        <td>{{ item["Product Price"] }}</td>
-                        <td>{{ item["Discount Applied"] }}</td>
-                        <td>{{ item["Shipping Time"] }}</td>
-                        <td>{{ item["Order Quantity"] }}</td>
-                        <td>{{ item["Prediction"] }}</td>
+                        <td>{{ entry['Product Price'] }}</td>
+                        <td>{{ entry['Discount Applied'] }}</td>
+                        <td>{{ entry['Shipping Time'] }}</td>
+                        <td>{{ entry['Order Quantity'] }}</td>
+                        <td>{{ entry['Prediction'] }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -43,7 +107,9 @@
         </div>
         <div class="buttons">
             <a href="{{ url_for('clear_history') }}" class="btn btn-secondary">Clear History</a>
-            <a href="{{ url_for('download_history') }}" class="btn btn-primary">Download History</a>
+            <a href="{{ url_for('download_history') }}" class="btn btn-primary">Download CSV</a>
+            <a href="{{ url_for('download_history_excel') }}" class="btn btn-primary">Download Excel</a>
+            <a href="{{ url_for('download_history_pdf') }}" class="btn btn-primary">Download PDF</a>
         </div>
     </div>
 </body>

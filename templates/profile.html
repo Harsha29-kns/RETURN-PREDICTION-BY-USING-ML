@@ -1,18 +1,40 @@
-{% extends "base.html" %}
-
-{% block title %}Profile{% endblock %}
-
-{% block content %}
-<h1>Profile</h1>
-<form action="{{ url_for('profile') }}" method="post">
-    <div class="input-group">
-        <label>Username</label>
-        <input type="text" name="username" value="{{ current_user.username }}" required>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('history') }}">History</a></li>
+            <li><a href="{{ url_for('upload') }}">Upload</a></li>
+            <li><a href="{{ url_for('visualize') }}">Visualize</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h1>Profile</h1>
+        <form action="{{ url_for('profile') }}" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" value="{{ current_user.username }}" required>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="input-group">
+                <label>Profile Picture</label>
+                <input type="file" name="profile_picture">
+            </div>
+            <button type="submit" class="btn-primary">Update Profile</button>
+        </form>
+        {% if current_user.profile_picture %}
+            <img src="{{ url_for('static', filename='profile_pictures/' + current_user.profile_picture) }}" alt="Profile Picture" class="profile-picture">
+        {% endif %}
     </div>
-    <div class="input-group">
-        <label>Password</label>
-        <input type="password" name="password" value="{{ current_user.password }}" required>
-    </div>
-    <button type="submit" class="btn-primary">Update Profile</button>
-</form>
-{% endblock %}
+</body>
+</html>
