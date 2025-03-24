@@ -46,11 +46,22 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
+        # Check if the username already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists. Please choose a different one.', 'danger')
+            return redirect(url_for('register'))
+        
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
-        login_user(new_user)
-        return redirect(url_for('home'))
+        
+        # Log out the user after registration
+        logout_user()
+        
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('login'))
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
