@@ -74,7 +74,7 @@ def login():
             login_user(user)
             return redirect(url_for('home'))
         else:
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            flash('Login failed. Please check your username and password.', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -124,6 +124,10 @@ def predict():
             "shipping_time": int(request.form["shipping_time"]),
             "order_quantity": int(request.form["order_quantity"])
         }
+
+        # Validate discount_applied
+        if not (0 <= input_data["discount_applied"] <= 100):
+            return render_template("index.html", prediction_text="Error: Discount Applied must be between 0 and 100")
 
         # Compute new features
         input_data["total_order_value"] = input_data["product_price"] * input_data["order_quantity"]
@@ -304,6 +308,10 @@ def api_predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__ == "__main__":
     import os

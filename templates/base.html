@@ -2,17 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function scrollToPrediction() {
+            setTimeout(() => {
+                let predictionBox = document.getElementById("prediction-box");
+                if (predictionBox) {
+                    predictionBox.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 500);
+        }
+    </script>
 </head>
 <body>
     <nav>
         <ul>
             <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('profile') }}">Profile</a></li>
             <li><a href="{{ url_for('history') }}">History</a></li>
             <li><a href="{{ url_for('upload') }}">Upload</a></li>
             <li><a href="{{ url_for('visualize') }}">Visualize</a></li>
-            <li><a href="{{ url_for('profile') }}">Profile</a></li>
+            <li><a href="{{ url_for('about') }}">About Me</a></li>
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
     </nav>

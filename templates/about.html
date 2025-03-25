@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}About Me{% endblock %}
+
+{% block content %}
+<style>
+    .profile_image {
+        display: block;
+        margin: 20px auto;
+        border-radius: 50%;
+        width: 150px;  /* Adjust the width as needed */
+        height: 150px; /* Adjust the height as needed */
+        object-fit: cover;
+    }
+</style>
+<div class="container">
+    <h1>About Me</h1>
+    <img src="{{ url_for('static', filename='profile_image.png') }}" alt="Profile Picture" class="profile_image">
+    <div class="about-section">
+        <h2>Hello! I'm [Admin]</h2>
+        <p>Welcome to my Return Prediction application. I have a passion for data science and machine learning, and I built this application to help businesses predict product returns based on various factors.</p>
+        <p>This application developed by:</p>
+        <p>Ch K.N.Sri Harsha-99230040835</p>
+        <p>A.Sai Maneendra-99230040831</p>
+        <p>M J Bhuvan-99230040843</p>
+        <p>S.Omkar-99230040192</p>
+        <p>Under Guidance of Dr.Vijay</p>
+    </div>
+    <div class="skills-section">
+        <h2>My Skills</h2>
+        <ul>
+            <li>Machine Learning</li>
+            <li>Python Programming</li>
+            <li>Flask Development</li>
+            <li>Web Development</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
