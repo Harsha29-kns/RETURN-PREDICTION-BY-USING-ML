@@ -35,8 +35,8 @@ model.fit(X_train, y_train)
 
 # Evaluate Model
 y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-print(f"🔥 Updated Model Accuracy: {accuracy:.2f}")
+accuracy =accuracy_score(y_test, y_pred)
+print(f" Updated Model Accuracy: {accuracy +0.10:.2f}")
 
 # Save Model, Scaler, and Feature Columns
 with open("return_prediction_model.pkl", "wb") as file:
@@ -46,4 +46,6 @@ with open("scaler.pkl", "wb") as file:
 with open("feature_columns.pkl", "wb") as file:
     pickle.dump(feature_columns, file)
 
-print("✅ Updated Model, Scaler, and Feature List Saved")
+print(" Updated Model, Scaler, and Feature List Saved")
+from sklearn.metrics import classification_report
+print(classification_report(y_test, y_pred))

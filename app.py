@@ -8,6 +8,7 @@ import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import plotly.express as px
+import plotly.graph_objects as go
 import plotly
 import json
 from werkzeug.utils import secure_filename
@@ -257,20 +258,32 @@ def upload():
 @login_required
 def visualize():
     try:
+        # Get prediction history from session
         history = session.get('history', [])
-        app.logger.debug(f"History session data: {history}")
         if not history:
             return render_template('visualize.html', graphJSON=None, message="No data available for visualization.")
-        
+
+        # Convert history to DataFrame
         df = pd.DataFrame(history)
-        app.logger.debug(f"DataFrame columns: {df.columns}")
-        app.logger.debug(f"DataFrame head: {df.head()}")
-        if df.empty or 'Product Price' not in df.columns or 'Order Quantity' not in df.columns or 'Prediction' not in df.columns:
+        if df.empty or 'Product Price' not in df.columns or 'Prediction' not in df.columns:
             return render_template('visualize.html', graphJSON=None, message="Insufficient data for visualization.")
-        
-        fig = px.bar(df, x='Product Price', y='Order Quantity', color='Prediction', title='Prediction History')
+
+        # Create a line graph
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=df['Product Price'],
+            y=df['Prediction'],
+            mode='lines+markers',
+            name='Prediction Line'
+        ))
+        fig.update_layout(
+            title='Product Price vs Predictions',
+            xaxis_title='Product Price',
+            yaxis_title='Prediction'
+        )
+
+        # Convert the figure to JSON
         graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        app.logger.debug(f"Generated graph JSON: {graphJSON}")
         return render_template('visualize.html', graphJSON=graphJSON)
     except Exception as e:
         app.logger.error(f"Error in visualize route: {e}")
@@ -319,3 +332,19 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(host="0.0.0.0", port=port, debug=True)
+
+{
+    "data": [
+        {
+            "x": [1, 2, 3, 4, 5],
+            "y": [10, 15, 13, 17, 20],
+            "mode": "lines",
+            "name": "Line Graph"
+        }
+    ],
+    "layout": {
+        "title": "Line Graph Example",
+        "xaxis": {"title": "X-axis"},
+        "yaxis": {"title": "Y-axis"}
+    }
+}
