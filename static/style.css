@@ -1,7 +1,6 @@
-/* Import Google Font */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-/* Global Styles */
 body {
     display: flex;
     justify-content: center;
@@ -16,7 +15,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Background Image */
 .background {
     position: fixed;
     top: 0;
@@ -34,7 +32,6 @@ body {
     animation: backgroundAnimation 10s infinite ease-in-out;
 }
 
-/* Background Animation */
 @keyframes backgroundAnimation {
     0% {
         transform: scale(1) translateY(0);
@@ -47,7 +44,6 @@ body {
     }
 }
 
-/* Main Container */
 .container {
     width: 90%;
     max-width: 500px;
@@ -59,7 +55,6 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Navigation Bar */
 nav {
     background: rgba(0, 0, 0, 0.7);
     padding: 10px 20px;
@@ -94,11 +89,10 @@ nav ul li a:hover {
 }
 
 .container {
-    padding-top: 60px; /* Adjust based on the height of the nav bar */
+    padding-top: 60px;
     text-align: center;
 }
 
-/* Headings */
 .title {
     font-size: 24px;
     font-weight: 600;
@@ -112,7 +106,7 @@ nav ul li a:hover {
     margin-bottom: 20px;
 }
 
-/* Form Styling */
+
 .form-container {
     margin-top: 10px;
 }
@@ -144,7 +138,6 @@ input:focus {
     box-shadow: 0 0 10px rgba(106, 17, 203, 0.3);
 }
 
-/* Buttons */
 .btn-primary, .btn-secondary {
     width: 100%;
     padding: 12px;
@@ -175,8 +168,6 @@ input:focus {
 .btn-secondary:hover {
     background-color: #0b5ed7;
 }
-
-/* Prediction Box */
 .prediction-box {
     margin-top: 20px;
     padding: 15px;
@@ -190,7 +181,6 @@ input:focus {
     animation: fadeIn 0.5s ease-in-out;
 }
 
-/* Smooth Fade-In Animation */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -202,7 +192,6 @@ input:focus {
     }
 }
 
-/* Ensure Scrolling Works */
 html, body {
     height: 100%;
     overflow-y: auto;
@@ -212,7 +201,6 @@ h1 {
     margin-top: 20px;
 }
 
-/* Login Container */
 .login-container {
     background: #fff;
     padding: 2rem;
