@@ -18,25 +18,23 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Required for session handling
+app.secret_key = "supersecretkey" 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  # Add this line
+migrate = Migrate(app, db)  
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Ensure the profile_pictures directory exists
 os.makedirs(os.path.join(app.static_folder, 'profile_pictures'), exist_ok=True)
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    profile_picture = db.Column(db.String(150), nullable=True)  # Add this line
+    profile_picture = db.Column(db.String(150), nullable=True)  
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -48,7 +46,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         
-        # Check if the username already exists
+        
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists. Please choose a different one.', 'danger')
@@ -58,7 +56,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        # Log out the user after registration
+        
         logout_user()
         
         flash('Registration successful. Please log in.', 'success')
@@ -96,7 +94,7 @@ def profile():
         current_user.username = request.form['username']
         current_user.password = request.form['password']
         
-        # Handle profile picture upload
+       
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
             if file.filename != '':
@@ -109,16 +107,16 @@ def profile():
         return redirect(url_for('profile'))
     return render_template('profile.html')
 
-# Load trained model, scaler, and feature list
+
 model = pickle.load(open("return_prediction_model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
-feature_columns = pickle.load(open("feature_columns.pkl", "rb"))  # Ensure same features are used
+feature_columns = pickle.load(open("feature_columns.pkl", "rb")) 
 
 @app.route("/predict", methods=["POST"])
 @login_required
 def predict():
     try:
-        # Get form inputs
+      
         input_data = {
             "product_price": float(request.form["product_price"]),
             "discount_applied": float(request.form["discount_applied"]),
@@ -126,28 +124,28 @@ def predict():
             "order_quantity": int(request.form["order_quantity"])
         }
 
-        # Validate discount_applied
+    
         if not (0 <= input_data["discount_applied"] <= 100):
             return render_template("index.html", prediction_text="Error: Discount Applied must be between 0 and 100")
 
-        # Compute new features
+        
         input_data["total_order_value"] = input_data["product_price"] * input_data["order_quantity"]
         input_data["discount_percentage"] = (input_data["discount_applied"] / input_data["product_price"]) * 100
         input_data["high_discount"] = 1 if input_data["discount_percentage"] > 30 else 0
         input_data["fast_shipping"] = 1 if input_data["shipping_time"] <= 3 else 0
 
-        # Ensure correct feature order
+       
         features = np.array([[input_data[feature] for feature in feature_columns]])
         features_scaled = scaler.transform(features)
 
-        # Get prediction and probability
+        
         prediction = model.predict(features_scaled)[0]
-        probability = model.predict_proba(features_scaled)[0][1] * 100  # Probability of return
+        probability = model.predict_proba(features_scaled)[0][1] * 100  
 
-        # Format the result
+        
         result = "Returned" if prediction == 1 else f"Not Returned ({100 - probability:.2f}% probability)"
 
-        # Save to session history
+        
         history = session.get("history", [])
         history.append({
             "Product Price": input_data["product_price"],
@@ -197,7 +195,7 @@ def download_history_excel():
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     df.to_excel(writer, index=False, sheet_name='History')
-    writer.close()  # Correct method to save the Excel file
+    writer.close() 
     output.seek(0)
     return send_file(output, download_name="history.xlsx", as_attachment=True)
 
@@ -232,7 +230,7 @@ def upload():
         file = request.files["file"]
         if file:
             data = pd.read_csv(file)
-            print(data.columns)  # Print the column names to verify
+            print(data.columns) 
             predictions = []
             for _, row in data.iterrows():
                 input_data = {
@@ -258,17 +256,16 @@ def upload():
 @login_required
 def visualize():
     try:
-        # Get prediction history from session
         history = session.get('history', [])
         if not history:
             return render_template('visualize.html', graphJSON=None, message="No data available for visualization.")
 
-        # Convert history to DataFrame
+    
         df = pd.DataFrame(history)
         if df.empty or 'Product Price' not in df.columns or 'Prediction' not in df.columns:
             return render_template('visualize.html', graphJSON=None, message="Insufficient data for visualization.")
 
-        # Create a line graph
+        
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=df['Product Price'],
@@ -282,7 +279,7 @@ def visualize():
             yaxis_title='Prediction'
         )
 
-        # Convert the figure to JSON
+        
         graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return render_template('visualize.html', graphJSON=graphJSON)
     except Exception as e:
@@ -300,21 +297,21 @@ def api_predict():
             "order_quantity": int(data["order_quantity"])
         }
 
-        # Compute new features
+        
         input_data["total_order_value"] = input_data["product_price"] * input_data["order_quantity"]
         input_data["discount_percentage"] = (input_data["discount_applied"] / input_data["product_price"]) * 100
         input_data["high_discount"] = 1 if input_data["discount_percentage"] > 30 else 0
         input_data["fast_shipping"] = 1 if input_data["shipping_time"] <= 3 else 0
 
-        # Ensure correct feature order
+        
         features = np.array([[input_data[feature] for feature in feature_columns]])
         features_scaled = scaler.transform(features)
 
-        # Get prediction and probability
+    
         prediction = model.predict(features_scaled)[0]
-        probability = model.predict_proba(features_scaled)[0][1] * 100  # Probability of return
+        probability = model.predict_proba(features_scaled)[0][1] * 100 
 
-        # Format the result
+    
         result = "Returned" if prediction == 1 else f"Not Returned ({100 - probability:.2f}% probability)"
 
         return jsonify({"prediction": result, "probability": probability})
